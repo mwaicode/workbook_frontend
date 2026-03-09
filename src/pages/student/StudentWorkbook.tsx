@@ -1,28 +1,33 @@
-// import { useState } from 'react'
+// import { useState, useEffect } from 'react'
 // import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 // import { workbookApi } from '../../api/workbooks'
 // import { answerApi } from '../../api/answer'
 // import { WorksheetTabs } from '../../components/WorksheetTabs'
 // import { AnswerBadge } from '../../components/GradeBadge'
-// import type { Worksheet, Answer } from '../../types'
+// import type { Workbook, Worksheet, Answer } from '../../types'
 // import { Save, Send } from 'lucide-react'
-// import { useAuth } from '../../context/AuthContext'
 
-// const QuestionBlock = ({ question, worksheetId }: { question: any; worksheetId: string }) => {
-//   const { user } = useAuth()
+// const QuestionBlock = ({ question }: { question: any }) => {
 //   const qc = useQueryClient()
 //   const [content, setContent] = useState('')
 //   const [saved, setSaved] = useState(false)
 
-//   const { data: answer, isLoading } = useQuery({
+//   const { data: answer, isLoading } = useQuery<Answer | null>({
 //     queryKey: ['myAnswer', question.id],
 //     queryFn: () => answerApi.getMyAnswer(question.id),
-//     onSuccess: (data: Answer | null) => { if (data) setContent(data.content) }
-//   } as any)
+//   })
+
+//   useEffect(() => {
+//     if (answer) setContent(answer.content)
+//   }, [answer])
 
 //   const save = useMutation({
 //     mutationFn: (submit: boolean) => answerApi.save(question.id, { content, submit }),
-//     onSuccess: () => { qc.invalidateQueries({ queryKey: ['myAnswer', question.id] }); setSaved(true); setTimeout(() => setSaved(false), 2000) }
+//     onSuccess: () => {
+//       qc.invalidateQueries({ queryKey: ['myAnswer', question.id] })
+//       setSaved(true)
+//       setTimeout(() => setSaved(false), 2000)
+//     }
 //   })
 
 //   const isSubmitted = answer?.status === 'SUBMITTED' || answer?.status === 'GRADED'
@@ -61,12 +66,9 @@
 //         </div>
 //       ) : (
 //         <div>
-//           <textarea
-//             value={content}
-//             onChange={e => setContent(e.target.value)}
+//           <textarea value={content} onChange={e => setContent(e.target.value)}
 //             className="input-field font-mono text-sm min-h-[120px] resize-y"
-//             placeholder="Write your answer here..."
-//           />
+//             placeholder="Write your answer here..." />
 //           <div className="flex gap-2 mt-2">
 //             <button onClick={() => save.mutate(false)} disabled={save.isPending}
 //               className="btn-ghost flex items-center gap-1.5 text-xs">
@@ -88,19 +90,26 @@
 //   const [activeWorkbookId, setActiveWorkbookId] = useState<string | null>(null)
 //   const [activeWorksheetId, setActiveWorksheetId] = useState<string | null>(null)
 
-//   const { data: workbooks = [] } = useQuery({
-//     queryKey: ['workbooks'], queryFn: workbookApi.list,
-//     onSuccess: (data: any[]) => { if (data.length && !activeWorkbookId) setActiveWorkbookId(data[0].id) }
-//   } as any)
+//   const { data: workbooks = [] } = useQuery<Workbook[]>({
+//     queryKey: ['workbooks'],
+//     queryFn: workbookApi.list,
+//   })
 
-//   const { data: worksheets = [] } = useQuery({
+//   const { data: worksheets = [] } = useQuery<Worksheet[]>({
 //     queryKey: ['worksheets', activeWorkbookId],
 //     queryFn: () => workbookApi.getWorksheets(activeWorkbookId!),
 //     enabled: !!activeWorkbookId,
-//     onSuccess: (data: any[]) => { if (data.length && !activeWorksheetId) setActiveWorksheetId(data[0].id) }
-//   } as any)
+//   })
 
-//   const activeWs: Worksheet | undefined = worksheets.find((w: any) => w.id === activeWorksheetId)
+//   useEffect(() => {
+//     if (workbooks.length && !activeWorkbookId) setActiveWorkbookId(workbooks[0].id)
+//   }, [workbooks])
+
+//   useEffect(() => {
+//     if (worksheets.length && !activeWorksheetId) setActiveWorksheetId(worksheets[0].id)
+//   }, [worksheets])
+
+//   const activeWs = worksheets.find(w => w.id === activeWorksheetId)
 
 //   return (
 //     <div>
@@ -111,7 +120,7 @@
 
 //       {workbooks.length > 0 && (
 //         <div className="flex gap-2 mb-4 overflow-x-auto">
-//           {workbooks.map((wb: any) => (
+//           {workbooks.map(wb => (
 //             <button key={wb.id} onClick={() => { setActiveWorkbookId(wb.id); setActiveWorksheetId(null) }}
 //               className={`px-4 py-2 text-sm font-mono border whitespace-nowrap ${activeWorkbookId === wb.id ? 'tab-active' : 'tab-inactive'}`}>
 //               {wb.title}
@@ -136,8 +145,8 @@
 //               ) : (
 //                 <div className="space-y-4">
 //                   <p className="label">Questions ({activeWs.questions?.length})</p>
-//                   {activeWs.questions?.map((q) => (
-//                     <QuestionBlock key={q.id} question={q} worksheetId={activeWs.id} />
+//                   {activeWs.questions?.map(q => (
+//                     <QuestionBlock key={q.id} question={q} />
 //                   ))}
 //                 </div>
 //               )}
@@ -173,22 +182,13 @@
 
 
 
-
-
-
-
-
-
-
-
-
-
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { workbookApi } from '../../api/workbooks'
 import { answerApi } from '../../api/answer'
 import { WorksheetTabs } from '../../components/WorksheetTabs'
 import { AnswerBadge } from '../../components/GradeBadge'
+import { socket } from '../../lib/socket'
 import type { Workbook, Worksheet, Answer } from '../../types'
 import { Save, Send } from 'lucide-react'
 
@@ -274,6 +274,7 @@ const QuestionBlock = ({ question }: { question: any }) => {
 export const StudentWorkbook = () => {
   const [activeWorkbookId, setActiveWorkbookId] = useState<string | null>(null)
   const [activeWorksheetId, setActiveWorksheetId] = useState<string | null>(null)
+  const queryClient = useQueryClient()
 
   const { data: workbooks = [] } = useQuery<Workbook[]>({
     queryKey: ['workbooks'],
@@ -285,6 +286,19 @@ export const StudentWorkbook = () => {
     queryFn: () => workbookApi.getWorksheets(activeWorkbookId!),
     enabled: !!activeWorkbookId,
   })
+
+  // WebSocket — listen for new questions from teacher
+  useEffect(() => {
+    // socket.on('question:added', ({ worksheetId }: { worksheetId: string }) => {
+    //   queryClient.invalidateQueries({ queryKey: ['worksheets', activeWorkbookId] })
+    // })
+
+    socket.on('question:added', ({ worksheetId: _worksheetId }: { worksheetId: string }) => {
+  queryClient.invalidateQueries({ queryKey: ['worksheets', activeWorkbookId] })
+})
+
+    return () => { socket.off('question:added') }
+  }, [activeWorkbookId])
 
   useEffect(() => {
     if (workbooks.length && !activeWorkbookId) setActiveWorkbookId(workbooks[0].id)
