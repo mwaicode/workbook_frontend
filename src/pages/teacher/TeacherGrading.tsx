@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { workbookApi } from '../../api/workbooks'
@@ -5,6 +6,7 @@ import { answerApi } from '../../api/answer'
 import { WorksheetTabs } from '../../components/WorksheetTabs'
 import { AnswerBadge, GradeBadge } from '../../components/GradeBadge'
 import { Modal } from '../../components/Modal'
+import { socket } from '../../lib/socket'
 import type { Workbook, Worksheet, Answer } from '../../types'
 import { MessageSquare, Star, Trash2 } from 'lucide-react'
 
@@ -37,6 +39,24 @@ export const TeacherGrading = () => {
     if (worksheets.length && !activeWorksheetId) setActiveWorksheetId(worksheets[0].id)
   }, [worksheets])
 
+  // WebSocket — refresh when grades or annotations change
+  useEffect(() => {
+    socket.on('grade:updated', ({ answerId }: { answerId: string }) => {
+      console.log('📩 Received grade:updated for answer:', answerId)
+      qc.invalidateQueries({ queryKey: ['answers', activeWorksheetId] })
+      qc.invalidateQueries({ queryKey: ['answer', answerId] })
+    })
+    socket.on('annotation:added', ({ answerId }: { answerId: string }) => {
+      console.log('📩 Received annotation:added for answer:', answerId)
+      qc.invalidateQueries({ queryKey: ['answer', answerId] })
+      qc.invalidateQueries({ queryKey: ['answers', activeWorksheetId] })
+    })
+    return () => {
+      socket.off('grade:updated')
+      socket.off('annotation:added')
+    }
+  }, [activeWorksheetId])
+
   const { data: questionsWithAnswers = [] } = useQuery({
     queryKey: ['answers', activeWorksheetId],
     queryFn: () => answerApi.getByWorksheet(activeWorksheetId!),
@@ -51,8 +71,9 @@ export const TeacherGrading = () => {
 
   const addAnnotation = useMutation({
     mutationFn: ({ answerId, data }: any) => answerApi.addAnnotation(answerId, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['answer', selectedAnswer?.id] })
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['answer', variables.answerId] })
+      qc.invalidateQueries({ queryKey: ['answers', activeWorksheetId] })
       setShowAnnotModal(false)
       setAnnotForm({ originalText: '', suggestedText: '', comment: '', startOffset: 0, endOffset: 0 })
     }
@@ -60,14 +81,17 @@ export const TeacherGrading = () => {
 
   const deleteAnnotation = useMutation({
     mutationFn: ({ answerId, annotId }: any) => answerApi.deleteAnnotation(answerId, annotId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['answer', selectedAnswer?.id] })
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['answer', variables.answerId] })
+      qc.invalidateQueries({ queryKey: ['answers', activeWorksheetId] })
+    }
   })
 
   const submitGrade = useMutation({
     mutationFn: ({ answerId, data }: any) => answerApi.submitGrade(answerId, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ['answers', activeWorksheetId] })
-      qc.invalidateQueries({ queryKey: ['answer', selectedAnswer?.id] })
+      qc.invalidateQueries({ queryKey: ['answer', variables.answerId] })
       setShowGradeModal(false)
     }
   })

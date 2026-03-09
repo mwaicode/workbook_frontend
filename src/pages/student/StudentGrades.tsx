@@ -1,15 +1,18 @@
+
 import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { workbookApi } from '../../api/workbooks'
 import { answerApi } from '../../api/answer'
 import { WorksheetTabs } from '../../components/WorksheetTabs'
 import { GradeBadge, AnswerBadge } from '../../components/GradeBadge'
 import { useAuth } from '../../context/AuthContext'
+import { socket } from '../../lib/socket'
 import type { Workbook, Worksheet } from '../../types'
 import { Award } from 'lucide-react'
 
 export const StudentGrades = () => {
   const { user } = useAuth()
+  const qc = useQueryClient()
   const [activeWorkbookId, setActiveWorkbookId] = useState<string | null>(null)
   const [activeWorksheetId, setActiveWorksheetId] = useState<string | null>(null)
 
@@ -32,6 +35,22 @@ export const StudentGrades = () => {
     if (worksheets.length && !activeWorksheetId) setActiveWorksheetId(worksheets[0].id)
   }, [worksheets])
 
+  // WebSocket — refresh grades when teacher grades or annotates
+  useEffect(() => {
+    socket.on('grade:updated', () => {
+      console.log('📩 Student received grade:updated')
+      qc.invalidateQueries({ queryKey: ['myGrades', activeWorksheetId, user?.id] })
+    })
+    socket.on('annotation:added', () => {
+      console.log('📩 Student received annotation:added')
+      qc.invalidateQueries({ queryKey: ['myGrades', activeWorksheetId, user?.id] })
+    })
+    return () => {
+      socket.off('grade:updated')
+      socket.off('annotation:added')
+    }
+  }, [activeWorksheetId, user?.id])
+
   const activeWs = worksheets.find(w => w.id === activeWorksheetId)
 
   const myAnswersQuery = useQuery({
@@ -41,8 +60,7 @@ export const StudentGrades = () => {
       const results = await Promise.all(
         activeWs.questions.map((q: any) => answerApi.getMyAnswer(q.id).catch(() => null))
       )
-      
-return results.filter(Boolean).map((a: any, i: number) => ({ ...a, question: activeWs.questions[i] }))
+      return results.filter(Boolean).map((a: any, i: number) => ({ ...a, question: activeWs.questions[i] }))
     },
     enabled: !!activeWs,
   })
