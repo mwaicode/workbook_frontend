@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-display: "Playfair Display", serif;
+
+  --color-paper: #FAF8F5;
+  --color-cream: #F2EDE6;
+  --color-ink: #1A1714;
+  --color-rule: #D8D0C8;
+  --color-director: #7C3AED;
+  --color-teacher: #0369A1;
+  --color-student: #065F46;
+}
+
+@layer base {
+  body {
+    @apply bg-paper text-ink font-sans;
+    background-image: repeating-linear-gradient(
+      0deg, transparent, transparent 27px, #c8bfa820 27px, #c8bfa820 28px
+    );
+    min-height: 100vh;
+  }
+  * { box-sizing: border-box; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-4 py-2 bg-ink text-paper text-sm font-medium hover:bg-ink/80 transition-colors;
+  }
+  .btn-ghost {
+    @apply px-4 py-2 text-sm font-medium border border-rule hover:bg-cream transition-colors;
+  }
+  .btn-danger {
+    @apply px-4 py-2 bg-red-700 text-white text-sm font-medium hover:bg-red-800 transition-colors;
+  }
+  .input-field {
+    @apply w-full px-3 py-2 bg-paper border border-rule text-sm focus:outline-none focus:border-ink font-mono;
+  }
+  .card {
+    @apply bg-cream border border-rule p-5;
+  }
+  .section-title {
+    @apply font-display text-2xl font-bold tracking-tight;
+  }
+  .label {
+    @apply text-xs font-mono uppercase tracking-widest text-ink/50;
+  }
+  .tab-active {
+    @apply bg-ink text-paper border-ink;
+  }
+  .tab-inactive {
+    @apply bg-paper text-ink border-rule hover:bg-cream;
+  }
+  .badge-director  { @apply bg-director text-white text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-teacher   { @apply bg-teacher text-white text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-student   { @apply bg-student text-white text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-pending   { @apply bg-amber-100 text-amber-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-approved  { @apply bg-green-100 text-green-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-rejected  { @apply bg-red-100 text-red-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-draft     { @apply bg-gray-100 text-gray-700 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-submitted { @apply bg-blue-100 text-blue-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .badge-graded    { @apply bg-purple-100 text-purple-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #D8D0C8; border-radius: 99px; }
