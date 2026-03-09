@@ -4,6 +4,7 @@
 // import { answerApi } from '../../api/answer'
 // import { WorksheetTabs } from '../../components/WorksheetTabs'
 // import { AnswerBadge } from '../../components/GradeBadge'
+// import { socket } from '../../lib/socket'
 // import type { Workbook, Worksheet, Answer } from '../../types'
 // import { Save, Send } from 'lucide-react'
 
@@ -89,6 +90,7 @@
 // export const StudentWorkbook = () => {
 //   const [activeWorkbookId, setActiveWorkbookId] = useState<string | null>(null)
 //   const [activeWorksheetId, setActiveWorksheetId] = useState<string | null>(null)
+//   const queryClient = useQueryClient()
 
 //   const { data: workbooks = [] } = useQuery<Workbook[]>({
 //     queryKey: ['workbooks'],
@@ -100,6 +102,19 @@
 //     queryFn: () => workbookApi.getWorksheets(activeWorkbookId!),
 //     enabled: !!activeWorkbookId,
 //   })
+
+//   // WebSocket — listen for new questions from teacher
+//   useEffect(() => {
+//     // socket.on('question:added', ({ worksheetId }: { worksheetId: string }) => {
+//     //   queryClient.invalidateQueries({ queryKey: ['worksheets', activeWorkbookId] })
+//     // })
+
+//     socket.on('question:added', ({ worksheetId: _worksheetId }: { worksheetId: string }) => {
+//   queryClient.invalidateQueries({ queryKey: ['worksheets', activeWorkbookId] })
+// })
+
+//     return () => { socket.off('question:added') }
+//   }, [activeWorkbookId])
 
 //   useEffect(() => {
 //     if (workbooks.length && !activeWorkbookId) setActiveWorkbookId(workbooks[0].id)
@@ -182,13 +197,16 @@
 
 
 
-import { useState, useEffect } from 'react'
+
+
+
+import { useState, useEffect, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { workbookApi } from '../../api/workbooks'
 import { answerApi } from '../../api/answer'
 import { WorksheetTabs } from '../../components/WorksheetTabs'
 import { AnswerBadge } from '../../components/GradeBadge'
-import { socket } from '../../lib/socket'
+import { useSocketEvent } from '../../hooks/useSocket'   // ← your hook
 import type { Workbook, Worksheet, Answer } from '../../types'
 import { Save, Send } from 'lucide-react'
 
@@ -214,6 +232,20 @@ const QuestionBlock = ({ question }: { question: any }) => {
       setTimeout(() => setSaved(false), 2000)
     }
   })
+
+  // Refetch this answer when teacher annotates it
+  useSocketEvent('annotation:added', useCallback(({ answerId }: { answerId: string }) => {
+    if (answer?.id === answerId) {
+      qc.invalidateQueries({ queryKey: ['myAnswer', question.id] })
+    }
+  }, [answer?.id, question.id, qc]))
+
+  // Refetch when grade is reviewed (approved/rejected) — student sees updated status
+  useSocketEvent('grade:updated', useCallback(({ answerId }: { answerId: string }) => {
+    if (answer?.id === answerId) {
+      qc.invalidateQueries({ queryKey: ['myAnswer', question.id] })
+    }
+  }, [answer?.id, question.id, qc]))
 
   const isSubmitted = answer?.status === 'SUBMITTED' || answer?.status === 'GRADED'
 
@@ -287,18 +319,10 @@ export const StudentWorkbook = () => {
     enabled: !!activeWorkbookId,
   })
 
-  // WebSocket — listen for new questions from teacher
-  useEffect(() => {
-    // socket.on('question:added', ({ worksheetId }: { worksheetId: string }) => {
-    //   queryClient.invalidateQueries({ queryKey: ['worksheets', activeWorkbookId] })
-    // })
-
-    socket.on('question:added', ({ worksheetId: _worksheetId }: { worksheetId: string }) => {
-  queryClient.invalidateQueries({ queryKey: ['worksheets', activeWorkbookId] })
-})
-
-    return () => { socket.off('question:added') }
-  }, [activeWorkbookId])
+  // New question added by teacher → refresh worksheet
+  useSocketEvent('question:added', useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['worksheets', activeWorkbookId] })
+  }, [activeWorkbookId, queryClient]))
 
   useEffect(() => {
     if (workbooks.length && !activeWorkbookId) setActiveWorkbookId(workbooks[0].id)

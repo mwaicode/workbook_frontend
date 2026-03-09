@@ -1,70 +1,350 @@
+@import url("https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  --font-display: "Playfair Display", serif;
+  /* Typography — Scholarly Editorial */
+  --font-sans:    "Lora", Georgia, serif;
+  --font-mono:    "DM Mono", monospace;
+  --font-display: "Fraunces", serif;
 
-  --color-paper: #FAF8F5;
-  --color-cream: #F2EDE6;
-  --color-ink: #1A1714;
-  --color-rule: #D8D0C8;
-  --color-director: #7C3AED;
-  --color-teacher: #0369A1;
-  --color-student: #065F46;
+  /* ── Surfaces: warm cream, preserved ── */
+  --color-paper:   #F7F4EF;   /* warm parchment base */
+  --color-cream:   #EDE8DF;   /* card / raised surface */
+  --color-vellum:  #E1D9CE;   /* deepest surface layer */
+
+  /* ── Ink: cool navy — crisp on cream ── */
+  --color-ink:     #18233A;   /* deep navy */
+  --color-ink-2:   #2E3F5C;   /* secondary headings */
+
+  /* ── Rules: cool slate-blue dividers on warm cream ── */
+  --color-rule:    #B8C4D4;   /* cool blue-grey — lovely on cream */
+  --color-shadow:  #A3B2C6;   /* card shadow */
+
+  /* ── Accent: steel blue — pops against cream beautifully ── */
+  --color-accent:   #2563A8;
+  --color-accent-2: #3478BF;
+
+  /* ── Role colors ── */
+  --color-director: #5B21B6;
+  --color-teacher:  #0E6EA6;
+  --color-student:  #0F766E;
 }
 
+/* ─── Base ────────────────────────────────────────────────────────────────── */
 @layer base {
   body {
-    @apply bg-paper text-ink font-sans;
-    background-image: repeating-linear-gradient(
-      0deg, transparent, transparent 27px, #c8bfa820 27px, #c8bfa820 28px
-    );
+    @apply font-sans;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+
+    background-image:
+      /* subtle paper grain */
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E"),
+      /* cool blue ruled lines on warm cream — the key pairing */
+      repeating-linear-gradient(
+        180deg,
+        transparent 0px,
+        transparent 31px,
+        #8ba5c41e 31px,
+        #8ba5c41e 32px
+      ),
+      /* faint steel-blue left margin rule */
+      linear-gradient(
+        90deg,
+        transparent 55px,
+        #2563a812 56px,
+        transparent 57px
+      );
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
   }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    color: var(--color-ink-2);
+  }
+
   * { box-sizing: border-box; }
 }
 
+/* ─── Components ──────────────────────────────────────────────────────────── */
 @layer components {
+
+  /* ── Buttons ── */
   .btn-primary {
-    @apply px-4 py-2 bg-ink text-paper text-sm font-medium hover:bg-ink/80 transition-colors;
+    @apply px-5 py-2.5 text-sm font-medium
+           active:scale-[0.98] transition-all duration-150;
+    background-color: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    box-shadow: 2px 2px 0 var(--color-shadow);
   }
+  .btn-primary:hover {
+    background-color: var(--color-ink-2);
+    box-shadow: 3px 3px 0 var(--color-shadow);
+    transform: translate(-1px, -1px);
+  }
+
+  .btn-accent {
+    @apply px-5 py-2.5 text-white text-sm font-medium
+           active:scale-[0.98] transition-all duration-150;
+    background-color: var(--color-accent);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    box-shadow: 2px 2px 0 #174e8a;
+  }
+  .btn-accent:hover {
+    background-color: var(--color-accent-2);
+    box-shadow: 3px 3px 0 #174e8a;
+    transform: translate(-1px, -1px);
+  }
+
   .btn-ghost {
-    @apply px-4 py-2 text-sm font-medium border border-rule hover:bg-cream transition-colors;
+    @apply px-5 py-2.5 text-sm font-medium border
+           active:scale-[0.98] transition-all duration-150;
+    background-color: transparent;
+    border-color: var(--color-rule);
+    color: var(--color-ink-2);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
   }
+  .btn-ghost:hover {
+    background-color: var(--color-cream);
+    border-color: var(--color-shadow);
+  }
+
   .btn-danger {
-    @apply px-4 py-2 bg-red-700 text-white text-sm font-medium hover:bg-red-800 transition-colors;
+    @apply px-5 py-2.5 text-white text-sm font-medium
+           active:scale-[0.98] transition-all duration-150;
+    background-color: #991B1B;
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    box-shadow: 2px 2px 0 #6b0f0f;
   }
+  .btn-danger:hover {
+    background-color: #7f1d1d;
+    box-shadow: 3px 3px 0 #6b0f0f;
+    transform: translate(-1px, -1px);
+  }
+
+  /* ── Inputs ── */
   .input-field {
-    @apply w-full px-3 py-2 bg-paper border border-rule text-sm focus:outline-none focus:border-ink font-mono;
+    @apply w-full px-3 py-2.5 text-sm
+           focus:outline-none transition-colors duration-150;
+    background-color: var(--color-paper);
+    border: 1px solid var(--color-rule);
+    color: var(--color-ink);
+    font-family: var(--font-mono);
+    background-image: linear-gradient(180deg, transparent 31px, #8ba5c416 31px);
+    background-size: 100% 32px;
   }
+  .input-field:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px #2563a81c;
+  }
+
+  /* ── Cards ── */
   .card {
-    @apply bg-cream border border-rule p-5;
+    @apply p-6;
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-rule);
+    /* cool blue stacked shadow against cream — elegant contrast */
+    box-shadow:
+      1px 1px 0 var(--color-vellum),
+      3px 3px 0 #c2cedc,
+      5px 5px 0 #b8c4d460;
+    position: relative;
   }
+  /* Steel blue corner accent on cream card */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 9px; left: 9px;
+    width: 13px; height: 13px;
+    border-top: 2px solid var(--color-accent);
+    border-left: 2px solid var(--color-accent);
+    opacity: 0.45;
+  }
+
+  .card-flat {
+    @apply p-5;
+    background-color: var(--color-cream);
+    border: 1px solid var(--color-rule);
+  }
+
+  /* ── Typography ── */
   .section-title {
-    @apply font-display text-2xl font-bold tracking-tight;
+    font-family: var(--font-display);
+    @apply text-2xl font-bold tracking-tight;
+    color: var(--color-ink-2);
+    font-variation-settings: "opsz" 72;
   }
+
+  .page-title {
+    font-family: var(--font-display);
+    @apply text-4xl font-black tracking-tight;
+    font-variation-settings: "opsz" 144;
+    color: var(--color-ink);
+  }
+
   .label {
-    @apply text-xs font-mono uppercase tracking-widest text-ink/50;
+    @apply text-xs uppercase tracking-widest;
+    font-family: var(--font-mono);
+    color: #7A8FA8;   /* cool slate-blue muted — sits perfectly on cream */
   }
+
+  /* ── Tabs ── */
   .tab-active {
-    @apply bg-ink text-paper border-ink;
+    @apply border;
+    background-color: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-paper);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
   }
   .tab-inactive {
-    @apply bg-paper text-ink border-rule hover:bg-cream;
+    @apply border transition-colors duration-150;
+    background-color: var(--color-paper);
+    border-color: var(--color-rule);
+    color: var(--color-ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
   }
-  .badge-director  { @apply bg-director text-white text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-teacher   { @apply bg-teacher text-white text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-student   { @apply bg-student text-white text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-pending   { @apply bg-amber-100 text-amber-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-approved  { @apply bg-green-100 text-green-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-rejected  { @apply bg-red-100 text-red-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-draft     { @apply bg-gray-100 text-gray-700 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-submitted { @apply bg-blue-100 text-blue-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
-  .badge-graded    { @apply bg-purple-100 text-purple-800 text-xs px-2 py-0.5 font-mono uppercase tracking-wider; }
+  .tab-inactive:hover {
+    background-color: var(--color-cream);
+    border-color: var(--color-shadow);
+  }
+
+  /* ── Ruled divider ── */
+  .ruled-divider {
+    display: flex; align-items: center; gap: 12px;
+    color: #7A8FA8;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .ruled-divider::before,
+  .ruled-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--color-rule);
+  }
+
+  /* ── Annotation / pull-quote ── */
+  .annotation {
+    border-left: 3px solid var(--color-accent);
+    @apply pl-4 py-1 italic text-sm;
+    font-family: var(--font-sans);
+    color: var(--color-ink-2);
+    opacity: 0.85;
+  }
+
+  /* ── Role Badges ── */
+  .badge-director {
+    background-color: var(--color-director);
+    @apply text-white text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+  .badge-teacher {
+    background-color: var(--color-teacher);
+    @apply text-white text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+  .badge-student {
+    background-color: var(--color-student);
+    @apply text-white text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+
+  /* ── Status Badges — warm pastels with cool borders ── */
+  .badge-pending {
+    background-color: #FEF3C7; color: #78350F;
+    border: 1px solid #D9770640;
+    @apply text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+  .badge-approved {
+    background-color: #D1FAE5; color: #064E3B;
+    border: 1px solid #10B98140;
+    @apply text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+  .badge-rejected {
+    background-color: #FEE2E2; color: #7F1D1D;
+    border: 1px solid #EF444440;
+    @apply text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+  .badge-draft {
+    background-color: #EBF0F7; color: #2E3F5C;  /* cool blue-tinted on cream */
+    border: 1px solid #B8C4D4;
+    @apply text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+  .badge-submitted {
+    background-color: #DBEAFE; color: #1E3A5F;
+    border: 1px solid #3B82F640;
+    @apply text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+  .badge-graded {
+    background-color: #EDE9FE; color: #3B0764;
+    border: 1px solid #8B5CF640;
+    @apply text-xs px-2.5 py-0.5 uppercase tracking-wider;
+    font-family: var(--font-mono);
+  }
+
+  /* ── Utilities ── */
+  .folio {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: var(--color-shadow);
+    text-transform: uppercase;
+  }
+
+  .workbook-table {
+    @apply w-full text-sm border-collapse;
+    font-family: var(--font-mono);
+  }
+  .workbook-table th {
+    @apply py-2 px-3 text-left uppercase tracking-widest text-xs;
+    color: #7A8FA8;
+    border-bottom: 2px solid var(--color-ink);
+  }
+  .workbook-table td {
+    @apply py-3 px-3;
+    border-bottom: 1px solid var(--color-rule);
+  }
+  .workbook-table tr:hover td {
+    background-color: var(--color-cream);
+  }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
+/* ─── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D8D0C8; border-radius: 99px; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-rule);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* ─── Selection ───────────────────────────────────────────────────────────── */
+::selection {
+  background-color: #2563a824;
+  color: var(--color-ink);
+}
+
+/* ─── Focus ring ──────────────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
