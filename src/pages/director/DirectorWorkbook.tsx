@@ -300,7 +300,7 @@ export const DirectorWorkbook = () => {
   const [activeWorksheetId, setActiveWorksheetId] = useState<string | null>(null)
   const [showCreateWorkbook, setShowCreateWorkbook] = useState(false)
   const [showCreateWorksheet, setShowCreateWorksheet] = useState(false)
-  const [editingWorksheet, setEditingWorksheet] = useState<Worksheet | null>(null)
+  const [, setEditingWorksheet] = useState<Worksheet | null>(null)
   const [workbookForm, setWorkbookForm] = useState({ title: '', description: '' })
   const [worksheetForm, setWorksheetForm] = useState({ title: '', body: '' })
   const [editBody, setEditBody] = useState('')

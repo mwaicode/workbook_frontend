@@ -269,7 +269,7 @@ export const TeacherWorkbook = () => {
     qc.invalidateQueries({ queryKey: ['workbooks'] })
   })
 
-  useSocketEvent('question:added', ({ worksheetId }: { worksheetId: string }) => {
+  useSocketEvent('question:added', ({ }: { worksheetId: string }) => {
     qc.invalidateQueries({ queryKey: ['worksheets'], exact: false })
   })
   // ─────────────────────────────────────────────────────────────────────────
