@@ -53,12 +53,14 @@ export const TeacherGrading = () => {
     queryFn: () => answerApi.getByWorksheet(activeWorksheetId!),
     enabled: !!activeWorksheetId,
     refetchOnWindowFocus: true,
+    refetchInterval: 5000,  
   })
 
   const { data: displayAnswer } = useQuery<Answer>({
     queryKey: ['answer', selectedAnswerId],
     queryFn: () => answerApi.get(selectedAnswerId!),
     enabled: !!selectedAnswerId,
+    refetchInterval: 5000,  
   })
 
   const addAnnotation = useMutation({
